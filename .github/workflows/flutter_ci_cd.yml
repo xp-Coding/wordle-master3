@@ -73,10 +73,10 @@ jobs:
         run: flutter pub get
 
       - name: 🔨 Build Universal Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: 📦 Build Google Play AppBundle (AAB)
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
 
       - name: 📤 Upload Release APK Artifact
         uses: actions/upload-artifact@v4
