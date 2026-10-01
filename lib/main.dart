@@ -1,35 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme/cyber_theme.dart';
-import 'core/storage/storage_service.dart';
-import 'core/audio/audio_service.dart';
-import 'core/ads/ad_service.dart';
+import 'core/services/audio_service.dart';
+import 'core/services/storage_service.dart';
+import 'core/theme/game_theme.dart';
 import 'features/menu/presentation/screens/main_menu_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize core persistence, audio, and ad engines
+  // Set preferred portrait orientations for casual mobile experience
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Initialize persistence and audio engines
   await StorageService().init();
-  await AudioService().init();
-  await AdService().init();
+  final soundEnabled = StorageService().isSoundEnabled;
+  await AudioService().init(soundEnabled: soundEnabled);
 
   runApp(
     const ProviderScope(
-      child: NeonShiftApp(),
+      child: WordleMasterApp(),
     ),
   );
 }
 
-class NeonShiftApp extends StatelessWidget {
-  const NeonShiftApp({super.key});
+class WordleMasterApp extends StatelessWidget {
+  const WordleMasterApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Neon Shift: Cyber Grid',
+      title: 'Wordle Master',
       debugShowCheckedModeBanner: false,
-      theme: CyberTheme.themeData,
+      theme: GameTheme.themeData,
       home: const MainMenuScreen(),
     );
   }

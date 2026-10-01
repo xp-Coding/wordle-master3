@@ -1,0 +1,107 @@
+name: Flutter CI/CD - Wordle Master
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # JOB 1: Static Analysis & Unit Test Suite
+  # ==========================================
+  analyze-and-test:
+    name: 🧪 Analyze & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java (Temurin JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🐦 Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: 🔍 Run Static Code Analysis
+        run: flutter analyze
+
+      - name: 🧪 Execute Unit Tests
+        run: flutter test --coverage
+
+  # ==========================================
+  # JOB 2: Build Release APK & AppBundle (AAB)
+  # ==========================================
+  build-android:
+    name: 📱 Build Android Release (APK & AAB)
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java (Temurin JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🐦 Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: 🔨 Build Universal Release APK
+        run: flutter build apk --release
+
+      - name: 📦 Build Google Play AppBundle (AAB)
+        run: flutter build appbundle --release
+
+      - name: 📤 Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wordle-Master-Release-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: 📤 Upload Release AppBundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wordle-Master-Release-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+          if-no-files-found: error
+
+      # Optional: Create GitHub Release when a tag is pushed (e.g., v1.0.0)
+      - name: 🚀 Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

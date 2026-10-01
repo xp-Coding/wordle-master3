@@ -1,196 +1,181 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../../../campaign/presentation/screens/sector_map_screen.dart';
-import '../../../game/presentation/screens/game_screen.dart';
-import '../../../economy_shop/presentation/screens/shop_modal.dart';
+import '../../../../core/services/audio_service.dart';
+import '../../../../core/services/storage_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../association/presentation/association_screen.dart';
+import '../../../daily_puzzle/presentation/daily_puzzle_screen.dart';
+import '../../../game/presentation/classic_wordle_screen.dart';
+import '../../../word_connect/presentation/word_connect_screen.dart';
+import '../widgets/daily_spin_modal.dart';
+import '../widgets/piggy_bank_modal.dart';
 import '../widgets/settings_modal.dart';
-import '../../../../core/theme/neon_colors.dart';
-import '../../../../core/storage/storage_service.dart';
-import '../../../../core/ads/ad_service.dart';
 
-class MainMenuScreen extends ConsumerStatefulWidget {
+class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
 
   @override
-  ConsumerState<MainMenuScreen> createState() => _MainMenuScreenState();
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
 }
 
-class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
-  BannerAd? _bannerAd;
-  bool _isBannerLoaded = false;
+class _MainMenuScreenState extends State<MainMenuScreen> {
+  final StorageService _storage = StorageService();
+  final AudioService _audio = AudioService();
 
-  @override
-  void initState() {
-    super.initState();
-    _bannerAd = AdService().createBannerAd();
-    _bannerAd?.load().then((_) {
-      if (mounted) {
-        setState(() {
-          _isBannerLoaded = true;
-        });
-      }
-    });
+  void _refresh() {
+    setState(() {});
   }
 
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
+  void _openSettings() {
+    _audio.playSfx(GameSfx.click);
+    showDialog(
+      context: context,
+      builder: (ctx) => SettingsModal(onChanged: _refresh),
+    );
+  }
+
+  void _openDailySpin() {
+    _audio.playSfx(GameSfx.click);
+    showDialog(
+      context: context,
+      builder: (ctx) => DailySpinModal(onRewardClaimed: _refresh),
+    );
+  }
+
+  void _openPiggyBank() {
+    _audio.playSfx(GameSfx.click);
+    showDialog(
+      context: context,
+      builder: (ctx) => PiggyBankModal(onClaimed: _refresh),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    int dataBits = StorageService().getDataBits();
-    int endlessHighScore = StorageService().getEndlessHighScore();
+    final currentCoins = _storage.coins;
+    final currentLevel = _storage.level;
+    final currentStreak = _storage.dailyStreak;
+    final piggyCoins = _storage.piggyBankCoins;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.menuGradientStart, // Soft Coral/Peach
+              AppColors.menuWarmAmber,
+              AppColors.menuGradientEnd,   // Creamy Amber
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 0.45, 1.0],
+          ),
+        ),
+        child: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 32),
-              // Neon Cyber Title
-              Text(
-                'NEON SHIFT',
-                style: GoogleFonts.orbitron(
-                  color: NeonColors.cyan,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 3.0,
-                  shadows: [
-                    const Shadow(blurRadius: 15, color: NeonColors.cyan, offset: Offset(0, 0)),
-                  ],
-                ),
-              ),
-              Text(
-                'CYBER GRID',
-                style: GoogleFonts.orbitron(
-                  color: NeonColors.neonMagenta,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 6.0,
-                  shadows: [
-                    const Shadow(blurRadius: 10, color: NeonColors.neonMagenta, offset: Offset(0, 0)),
-                  ],
-                ),
+              // Top HUD Navigation
+              _buildTopHUD(
+                coins: currentCoins,
+                level: currentLevel,
+                streak: currentStreak,
               ),
 
-              const SizedBox(height: 24),
-              // Stats Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: NeonColors.cardSurface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: NeonColors.surfaceBorder),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              // Title Branding Banner
+              const SizedBox(height: 12),
+              _buildLogoBanner(),
+
+              // Quick Action Metagame Floating Bar (Daily Spin & Piggy Bank)
+              const SizedBox(height: 16),
+              _buildMetagameBar(piggyCoins: piggyCoins),
+
+              // Game Modes List
+              const SizedBox(height: 20),
+              Expanded(
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   children: [
-                    const Icon(Icons.memory_rounded, color: NeonColors.matrixGreen, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$dataBits BITS',
-                      style: GoogleFonts.orbitron(
-                        color: NeonColors.matrixGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                    _buildModeCard(
+                      title: 'CLASSIC WORDLE',
+                      subtitle: '6 tries • ${_storage.wordLength}-letter grid • Two-Pass logic',
+                      icon: Icons.grid_view_rounded,
+                      badgeText: '${_storage.wordLength} LETTERS',
+                      gradientColors: const [Color(0xFF538D4E), Color(0xFF6AAA64)],
+                      onTap: () {
+                        _audio.playSfx(GameSfx.click);
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => ClassicWordleScreen(
+                                  initialWordLength: _storage.wordLength,
+                                ),
+                              ),
+                            )
+                            .then((_) => _refresh());
+                      },
                     ),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.emoji_events_rounded, color: NeonColors.starGold, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      'BEST: $endlessHighScore',
-                      style: GoogleFonts.orbitron(
-                        color: NeonColors.starGold,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                    const SizedBox(height: 16),
+                    _buildModeCard(
+                      title: 'DAILY PUZZLE',
+                      subtitle: 'Global synced UTC challenge & daily streak',
+                      icon: Icons.calendar_month_rounded,
+                      badgeText: _storage.isDailyCompletedToday ? 'DONE TODAY' : 'NEW TODAY',
+                      badgeColor: _storage.isDailyCompletedToday
+                          ? Colors.grey.shade700
+                          : AppColors.streakOrange,
+                      gradientColors: const [Color(0xFFFF7043), Color(0xFFFF8A65)],
+                      onTap: () {
+                        _audio.playSfx(GameSfx.click);
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => const DailyPuzzleScreen(),
+                              ),
+                            )
+                            .then((_) => _refresh());
+                      },
                     ),
+                    const SizedBox(height: 16),
+                    _buildModeCard(
+                      title: 'WORD CONNECT',
+                      subtitle: 'Radial anagram wheel • Smooth gesture swipe',
+                      icon: Icons.gesture_rounded,
+                      badgeText: 'ANAGRAM WHEEL',
+                      gradientColors: const [Color(0xFF8E24AA), Color(0xFFAB47BC)],
+                      onTap: () {
+                        _audio.playSfx(GameSfx.click);
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => const WordConnectScreen(),
+                              ),
+                            )
+                            .then((_) => _refresh());
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildModeCard(
+                      title: '3 CLUES • 1 WORD',
+                      subtitle: 'Association puzzle • 3-strike heart counter',
+                      icon: Icons.psychology_rounded,
+                      badgeText: 'ASSOCIATION',
+                      gradientColors: const [Color(0xFF0097A7), Color(0xFF00ACC1)],
+                      onTap: () {
+                        _audio.playSfx(GameSfx.click);
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => const AssociationScreen(),
+                              ),
+                            )
+                            .then((_) => _refresh());
+                      },
+                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-
-              const Spacer(),
-
-              // Action Navigation Buttons
-              _buildMenuButton(
-                context,
-                title: 'CAMPAIGN SECTORS',
-                subtitle: '30 Levels Across 3 Sectors',
-                color: NeonColors.cyan,
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const SectorMapScreen()),
-                  );
-                  setState(() {});
-                },
-              ),
-              const SizedBox(height: 16),
-
-              _buildMenuButton(
-                context,
-                title: 'ENDLESS CYBER RUN',
-                subtitle: 'Survival Mode with Overcharge Decay',
-                color: NeonColors.neonMagenta,
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const GameScreen(isEndless: true)),
-                  );
-                  setState(() {});
-                },
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSmallButton(
-                      context,
-                      title: 'MARKETPLACE',
-                      icon: Icons.storefront_rounded,
-                      color: NeonColors.cyberYellow,
-                      onTap: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const ShopModal()),
-                        );
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildSmallButton(
-                      context,
-                      title: 'SETTINGS',
-                      icon: Icons.settings_rounded,
-                      color: NeonColors.textMuted,
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => const SettingsModal(),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-
-              const Spacer(),
-
-              // AdMob Banner Placement Hook
-              if (_isBannerLoaded && _bannerAd != null)
-                Container(
-                  alignment: Alignment.center,
-                  width: _bannerAd!.size.width.toDouble(),
-                  height: _bannerAd!.size.height.toDouble(),
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: AdWidget(ad: _bannerAd!),
-                ),
             ],
           ),
         ),
@@ -198,88 +183,399 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
     );
   }
 
-  Widget _buildMenuButton(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
+  Widget _buildTopHUD({
+    required int coins,
+    required int level,
+    required int streak,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        decoration: BoxDecoration(
-          color: NeonColors.cardSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color, width: 2.0),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 12,
-              spreadRadius: 1,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Level Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.orbitron(
-                color: color,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+            child: Row(
+              children: [
+                const Icon(Icons.shield_rounded, color: AppColors.xpPurple, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  'LVL $level',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Streak Badge & Coins
+          Row(
+            children: [
+              // Daily Streak
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.local_fire_department_rounded, color: AppColors.streakOrange, size: 18),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$streak',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: GoogleFonts.orbitron(
-                color: NeonColors.textMuted,
-                fontSize: 10,
+              const SizedBox(width: 8),
+
+              // Coins HUD
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.monetization_on, color: AppColors.coinGoldDark, size: 18),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$coins',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 8),
+
+              // Settings Gear Button
+              IconButton(
+                icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 26),
+                onPressed: _openSettings,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSmallButton(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: NeonColors.cardSurface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.6), width: 1.5),
-        ),
-        child: Row(
+  Widget _buildLogoBanner() {
+    return Column(
+      children: [
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: GoogleFonts.orbitron(
-                color: color,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
+          children: ['W', 'O', 'R', 'D', 'L', 'E'].map((letter) {
+            final isGreen = letter == 'W' || letter == 'D';
+            final isYellow = letter == 'O' || letter == 'L';
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: 38,
+              height: 42,
+              decoration: BoxDecoration(
+                color: isGreen
+                    ? AppColors.tileCorrect
+                    : (isYellow ? AppColors.tileMisplaced : AppColors.tileAbsent),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                letter,
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'CASUAL PUZZLE PLATFORM',
+          style: GoogleFonts.outfit(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 3.0,
+            color: Colors.white.withOpacity(0.9),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetagameBar({required int piggyCoins}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          // Daily Spin Button
+          Expanded(
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              elevation: 4,
+              shadowColor: Colors.black26,
+              child: InkWell(
+                onTap: _openDailySpin,
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFF3E0),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.stars_rounded, color: AppColors.menuWarmAmber, size: 22),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'LUCKY SPIN',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          Text(
+                            'Free Coins',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
+          ),
+          const SizedBox(width: 12),
+
+          // Piggy Bank Button
+          Expanded(
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              elevation: 4,
+              shadowColor: Colors.black26,
+              child: InkWell(
+                onTap: _openPiggyBank,
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFCE4EC),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.savings_rounded, color: Colors.pinkAccent, size: 22),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PIGGY BANK',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          Text(
+                            '$piggyCoins Coins',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.pinkAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required String badgeText,
+    Color? badgeColor,
+    required List<Color> gradientColors,
+    required VoidCallback onTap,
+  }) {
+    final effectiveBadgeColor = badgeColor ?? gradientColors.first;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Gradient Icon Tile
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: gradientColors.first.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 30),
+              ),
+              const SizedBox(width: 16),
+
+              // Title and Subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDark,
+                              letterSpacing: 0.5,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        color: AppColors.textSubtle,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: effectiveBadgeColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: effectiveBadgeColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Arrow Action
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.tileFilledBorder,
+                size: 18,
+              ),
+            ],
+          ),
         ),
       ),
     );
