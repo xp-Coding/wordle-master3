@@ -5,6 +5,8 @@
 -keep class io.flutter.view.** { *; }
 -keep class io.flutter.embedding.** { *; }
 -dontwarn io.flutter.embedding.**
+-dontwarn io.flutter.app.FlutterPlayStoreSplitApplication
+-dontwarn com.google.android.play.core.**
 
 # Hive Keep Rules
 -keep class com.io7m.r2.jaxb.** { *; }
