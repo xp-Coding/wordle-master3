@@ -47,9 +47,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.debug // Replace with production keystore for Google Play Console release
-            minifyEnabled true
-            shrinkResources true
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

@@ -1,4 +1,4 @@
-package com.cybergames.neonshift
+package com.casualgames.wordlemaster
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,25 +7,49 @@ import 'core/services/storage_service.dart';
 import 'core/theme/game_theme.dart';
 import 'features/menu/presentation/screens/main_menu_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Set preferred portrait orientations for casual mobile experience
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+    // Prevent uncaught Flutter framework errors from terminating the app
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('Caught Flutter Framework Error: ${details.exception}');
+    };
 
-  // Initialize persistence and audio engines
-  await StorageService().init();
-  final soundEnabled = StorageService().isSoundEnabled;
-  await AudioService().init(soundEnabled: soundEnabled);
+    // Safe orientation lock
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } catch (e) {
+      debugPrint('Orientation lock note: $e');
+    }
 
-  runApp(
-    const ProviderScope(
-      child: WordleMasterApp(),
-    ),
-  );
+    // Safe persistence engine init
+    try {
+      await StorageService().init();
+    } catch (e) {
+      debugPrint('StorageService init note: $e');
+    }
+
+    // Safe audio engine init
+    try {
+      final soundEnabled = StorageService().isSoundEnabled;
+      await AudioService().init(soundEnabled: soundEnabled);
+    } catch (e) {
+      debugPrint('AudioService init note: $e');
+    }
+
+    runApp(
+      const ProviderScope(
+        child: WordleMasterApp(),
+      ),
+    );
+  }, (error, stackTrace) {
+    debugPrint('Caught Unhandled Async Error: $error\n$stackTrace');
+  });
 }
 
 class WordleMasterApp extends StatelessWidget {
@@ -37,6 +62,31 @@ class WordleMasterApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: GameTheme.themeData,
       home: const MainMenuScreen(),
+      builder: (context, child) {
+        // Safe global error widget fallback
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          return Scaffold(
+            backgroundColor: const Color(0xFF121624),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.refresh_rounded, color: Colors.orangeAccent, size: 48),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Resuming Wordle Master...',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        };
+        return child ?? const SizedBox.shrink();
+      },
     );
   }
 }
