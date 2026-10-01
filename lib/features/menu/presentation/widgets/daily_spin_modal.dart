@@ -118,7 +118,7 @@ class _DailySpinModalState extends State<DailySpinModal>
               border: Border.all(color: AppColors.menuWarmAmber, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.menuWarmAmber.withOpacity(0.3),
+                  color: AppColors.menuWarmAmber.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -193,7 +193,7 @@ class _DailySpinModalState extends State<DailySpinModal>
                           size: 40,
                           color: Colors.white,
                           shadows: [
-                            Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 6),
+                            Shadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 6),
                           ],
                         ),
                       ),

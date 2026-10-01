@@ -53,7 +53,7 @@ class _PiggyBankModalState extends State<PiggyBankModal> {
           border: Border.all(color: Colors.pinkAccent.shade200, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.pinkAccent.withOpacity(0.25),
+              color: Colors.pinkAccent.withValues(alpha: 0.25),
               blurRadius: 20,
               spreadRadius: 2,
             ),
@@ -75,7 +75,7 @@ class _PiggyBankModalState extends State<PiggyBankModal> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.pinkAccent.withOpacity(0.4),
+                    color: Colors.pinkAccent.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),

@@ -228,7 +228,7 @@ class _AnimatedFlipTileState extends State<AnimatedFlipTile>
         boxShadow: [
           // 3D Bevel Shadow
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
+            color: Colors.black.withValues(alpha: 0.35),
             offset: const Offset(0, 3),
             blurRadius: 4,
           ),

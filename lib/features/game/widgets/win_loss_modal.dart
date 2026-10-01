@@ -34,14 +34,14 @@ class WinLossModal extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
             color: isWin
-                ? AppColors.tileCorrect.withOpacity(0.6)
-                : Colors.redAccent.withOpacity(0.5),
+                ? AppColors.tileCorrect.withValues(alpha: 0.6)
+                : Colors.redAccent.withValues(alpha: 0.5),
             width: 2.0,
           ),
           boxShadow: [
             BoxShadow(
               color: (isWin ? AppColors.tileCorrect : Colors.redAccent)
-                  .withOpacity(0.25),
+                  .withValues(alpha: 0.25),
               blurRadius: 25,
               spreadRadius: 4,
             ),
@@ -66,7 +66,7 @@ class WinLossModal extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: (isWin ? AppColors.tileCorrect : Colors.redAccent)
-                        .withOpacity(0.4),
+                        .withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -127,7 +127,7 @@ class WinLossModal extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.gameBgGradientStart.withOpacity(0.6),
+                color: AppColors.gameBgGradientStart.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(

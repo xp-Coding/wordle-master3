@@ -92,8 +92,8 @@ class GameKeyboard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isEliminated
-                                  ? Colors.red.withOpacity(0.3)
-                                  : AppColors.keyDefaultBorder.withOpacity(0.4),
+                                  ? Colors.red.withValues(alpha: 0.3)
+                                  : AppColors.keyDefaultBorder.withValues(alpha: 0.4),
                               width: 1.0,
                             ),
                           ),
@@ -140,7 +140,7 @@ class GameKeyboard extends StatelessWidget {
             fontSize: 17,
             fontWeight: FontWeight.w700,
             color: isEliminated
-                ? AppColors.textMuted.withOpacity(0.3)
+                ? AppColors.textMuted.withValues(alpha: 0.3)
                 : AppColors.textLight,
           ),
         ),
@@ -150,7 +150,7 @@ class GameKeyboard extends StatelessWidget {
             child: Container(
               height: 2,
               width: 18,
-              color: Colors.redAccent.withOpacity(0.8),
+              color: Colors.redAccent.withValues(alpha: 0.8),
             ),
           ),
       ],

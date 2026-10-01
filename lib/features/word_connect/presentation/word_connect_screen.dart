@@ -356,7 +356,7 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
                 border: Border.all(color: AppColors.menuWarmAmber, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.menuWarmAmber.withOpacity(0.3),
+                    color: AppColors.menuWarmAmber.withValues(alpha: 0.3),
                     blurRadius: 10,
                   ),
                 ],
@@ -418,12 +418,12 @@ class RadialWheelPainter extends CustomPainter {
 
     // Draw background outer wheel circle
     final bgPaint = Paint()
-      ..color = AppColors.gameHeaderBg.withOpacity(0.8)
+      ..color = AppColors.gameHeaderBg.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, size.width / 2, bgPaint);
 
     final borderPaint = Paint()
-      ..color = AppColors.tileFilledBorder.withOpacity(0.5)
+      ..color = AppColors.tileFilledBorder.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawCircle(center, size.width / 2, borderPaint);

@@ -368,7 +368,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
   Widget _buildHeaderHUD() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.gameHeaderBg.withOpacity(0.5),
+      color: AppColors.gameHeaderBg.withValues(alpha: 0.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -392,7 +392,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.tileFilled,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.coinGold.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.coinGold.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   children: [
