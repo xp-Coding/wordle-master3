@@ -427,9 +427,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        // Title Typography: WORDLE MASTER
+        // Title Typography: WORDLE BRAIN
         Text(
-          'WORDLE MASTER',
+          'WORDLE BRAIN',
           style: GoogleFonts.outfit(
             fontSize: 22,
             fontWeight: FontWeight.w900,

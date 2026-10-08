@@ -24,20 +24,20 @@ class BoosterBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildBoosterButton(
-            icon: Icons.lightbulb_rounded,
-            title: 'HINT',
+            icon: Icons.lightbulb_outline,
+            title: 'Hint',
             accentColor: AppColors.boosterHint,
             onTap: onHintTapped,
           ),
           _buildBoosterButton(
-            icon: Icons.gps_fixed_rounded,
-            title: 'CROSSHAIR',
+            icon: Icons.track_changes,
+            title: 'Dart',
             accentColor: AppColors.boosterDart,
             onTap: onCrosshairTapped,
           ),
           _buildBoosterButton(
-            icon: Icons.skip_next_rounded,
-            title: 'PASS',
+            icon: Icons.skip_next,
+            title: 'Pass',
             accentColor: AppColors.streakOrange,
             onTap: onSkipTapped,
           ),
@@ -58,7 +58,7 @@ class BoosterBar extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
             color: AppColors.gameHeaderBg,
             borderRadius: BorderRadius.circular(14),
@@ -90,42 +90,14 @@ class BoosterBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.tileFilled,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: AppColors.coinGold.withValues(alpha: 0.5)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.play_arrow_rounded, size: 10, color: AppColors.coinGold),
-                        Text(
-                          'AD',
-                          style: GoogleFonts.outfit(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.coinGold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textLight,
+                  letterSpacing: 0.5,
+                ),
               ),
             ],
           ),

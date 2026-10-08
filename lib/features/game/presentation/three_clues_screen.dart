@@ -554,7 +554,7 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
     );
   }
 
-  /// Action bar with HINT (AD) and PASS (AD)
+  /// Action bar with HINT and PASS
   Widget _buildActionBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -565,7 +565,7 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
             onPressed: _useHint,
             icon: const Icon(Icons.lightbulb_rounded, size: 16),
             label: Text(
-              'HINT (AD)',
+              'HINT',
               style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
@@ -579,7 +579,7 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
             onPressed: _usePass,
             icon: const Icon(Icons.skip_next_rounded, size: 16, color: Colors.white),
             label: Text(
-              'PASS (AD)',
+              'PASS',
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

@@ -101,7 +101,7 @@ class _WordleMasterAppState extends State<WordleMasterApp> with WidgetsBindingOb
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: rootNavigatorKey,
-      title: 'Wordle Master',
+      title: 'Wordle Brain',
       debugShowCheckedModeBanner: false,
       theme: GameTheme.themeData,
       home: const MainMenuScreen(),
@@ -119,7 +119,7 @@ class _WordleMasterAppState extends State<WordleMasterApp> with WidgetsBindingOb
                     const Icon(Icons.refresh_rounded, color: Colors.orangeAccent, size: 48),
                     const SizedBox(height: 12),
                     const Text(
-                      'Resuming Wordle Master...',
+                      'Resuming Wordle Brain...',
                       style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ],

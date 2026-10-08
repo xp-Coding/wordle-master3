@@ -5,13 +5,14 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
-        android:label="Wordle Master"
+        android:label="Wordle Brain"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:hardwareAccelerated="true">
 
         <activity
             android:name=".MainActivity"
+            android:label="Wordle Brain"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"

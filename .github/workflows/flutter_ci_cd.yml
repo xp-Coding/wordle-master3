@@ -1,4 +1,4 @@
-name: Flutter CI/CD - Wordle Master
+name: Flutter CI/CD - Wordle Brain
 
 on:
   push:
@@ -84,7 +84,7 @@ jobs:
       - name: 📤 Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Wordle-Master-Release-APK
+          name: Wordle-Brain-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
           if-no-files-found: error
@@ -92,7 +92,7 @@ jobs:
       - name: 📤 Upload Release AppBundle Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Wordle-Master-Release-AAB
+          name: Wordle-Brain-Release-AAB
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
           if-no-files-found: error

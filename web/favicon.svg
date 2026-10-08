@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="greenTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#538D4E"/>
+      <stop offset="100%" stop-color="#6AAA64"/>
+    </linearGradient>
+    <linearGradient id="amberTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#121624"/>
+  <!-- 'W' Emerald Tile -->
+  <g filter="url(#shadow)">
+    <rect x="12" y="24" width="48" height="52" rx="12" fill="url(#greenTile)" stroke="#ffffff" stroke-width="2" stroke-opacity="0.8"/>
+    <text x="36" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">W</text>
+  </g>
+  <!-- 'B' Amber Tile -->
+  <g filter="url(#shadow)">
+    <rect x="68" y="24" width="48" height="52" rx="12" fill="url(#amberTile)" stroke="#ffffff" stroke-width="2" stroke-opacity="0.8"/>
+    <text x="92" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">B</text>
+  </g>
+  <text x="64" y="104" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#60A5FA" letter-spacing="2" text-anchor="middle">PUZZLES</text>
+</svg>

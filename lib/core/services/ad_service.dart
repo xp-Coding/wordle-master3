@@ -223,7 +223,7 @@ class _RewardedVideoAdDialogState extends State<_RewardedVideoAdDialog> {
                       const Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 54),
                       const SizedBox(height: 10),
                       Text(
-                        'WORDLE MASTER VIP',
+                        'WORDLE BRAIN VIP',
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
@@ -654,7 +654,7 @@ class _SponsoredInteractiveModal extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Thank you for supporting Wordle Master!',
+                    'Thank you for supporting Wordle Brain!',
                     style: GoogleFonts.outfit(fontSize: 12, color: Colors.white70),
                   ),
                 ],

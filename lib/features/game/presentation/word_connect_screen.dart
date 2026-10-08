@@ -488,10 +488,10 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  'REVEAL WORD (AD)',
+                  'REVEAL',
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w900,
