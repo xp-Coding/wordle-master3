@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/audio_service.dart';
-import '../../../../core/services/storage_service.dart';
+import '../../../../core/services/game_storage.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../association/presentation/association_screen.dart';
-import '../../../daily_puzzle/presentation/daily_puzzle_screen.dart';
 import '../../../game/presentation/classic_wordle_screen.dart';
-import '../../../word_connect/presentation/word_connect_screen.dart';
-import '../widgets/daily_spin_modal.dart';
+import '../../../game/presentation/daily_puzzle_screen.dart';
+import '../../../game/presentation/three_clues_screen.dart';
+import '../../../game/presentation/word_connect_screen.dart';
+import '../../widgets/lucky_spin_dialog.dart';
 import '../widgets/piggy_bank_modal.dart';
 import '../widgets/settings_modal.dart';
 
@@ -19,7 +19,7 @@ class MainMenuScreen extends StatefulWidget {
 }
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
-  final StorageService _storage = StorageService();
+  final GameStorage _storage = GameStorage();
   final AudioService _audio = AudioService();
 
   void _refresh() {
@@ -38,7 +38,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     _audio.playSfx(GameSfx.click);
     showDialog(
       context: context,
-      builder: (ctx) => DailySpinModal(onRewardClaimed: _refresh),
+      builder: (ctx) => LuckySpinDialog(onRewardClaimed: _refresh),
     );
   }
 
@@ -53,7 +53,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final currentCoins = _storage.coins;
-    final currentLevel = _storage.level;
+    final currentLevel = _storage.playerLevel;
     final currentStreak = _storage.dailyStreak;
     final piggyCoins = _storage.piggyBankCoins;
 
@@ -98,9 +98,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   children: [
                     _buildModeCard(
                       title: 'CLASSIC WORDLE',
-                      subtitle: '6 tries • ${_storage.wordLength}-letter grid • Two-Pass logic',
+                      subtitle: '50 progressive levels • Emoji hints • Two-Pass logic',
                       icon: Icons.grid_view_rounded,
-                      badgeText: '${_storage.wordLength} LETTERS',
+                      badgeText: 'LEVEL ${_storage.classicLevel} / 50',
                       gradientColors: const [Color(0xFF538D4E), Color(0xFF6AAA64)],
                       onTap: () {
                         _audio.playSfx(GameSfx.click);
@@ -108,7 +108,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             .push(
                               MaterialPageRoute(
                                 builder: (_) => ClassicWordleScreen(
-                                  initialWordLength: _storage.wordLength,
+                                  initialLevel: _storage.classicLevel,
                                 ),
                               ),
                             )
@@ -118,7 +118,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     const SizedBox(height: 16),
                     _buildModeCard(
                       title: 'DAILY PUZZLE',
-                      subtitle: 'Global synced UTC challenge & daily streak',
+                      subtitle: 'October 2026 calendar grid • Milestone chests',
                       icon: Icons.calendar_month_rounded,
                       badgeText: _storage.isDailyCompletedToday ? 'DONE TODAY' : 'NEW TODAY',
                       badgeColor: _storage.isDailyCompletedToday
@@ -139,16 +139,18 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     const SizedBox(height: 16),
                     _buildModeCard(
                       title: 'WORD CONNECT',
-                      subtitle: 'Radial anagram wheel • Smooth gesture swipe',
+                      subtitle: '50 levels • Radial anagram wheel • Swipe gestures',
                       icon: Icons.gesture_rounded,
-                      badgeText: 'ANAGRAM WHEEL',
+                      badgeText: 'LEVEL ${_storage.wordConnectLevel} / 50',
                       gradientColors: const [Color(0xFF8E24AA), Color(0xFFAB47BC)],
                       onTap: () {
                         _audio.playSfx(GameSfx.click);
                         Navigator.of(context)
                             .push(
                               MaterialPageRoute(
-                                builder: (_) => const WordConnectScreen(),
+                                builder: (_) => WordConnectScreen(
+                                  initialLevel: _storage.wordConnectLevel,
+                                ),
                               ),
                             )
                             .then((_) => _refresh());
@@ -157,16 +159,18 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     const SizedBox(height: 16),
                     _buildModeCard(
                       title: '3 CLUES • 1 WORD',
-                      subtitle: 'Association puzzle • 3-strike heart counter',
+                      subtitle: '50 deduction puzzles • 3 hearts • Shuffled letters',
                       icon: Icons.psychology_rounded,
-                      badgeText: 'ASSOCIATION',
+                      badgeText: 'LEVEL ${_storage.threeCluesLevel} / 50',
                       gradientColors: const [Color(0xFF0097A7), Color(0xFF00ACC1)],
                       onTap: () {
                         _audio.playSfx(GameSfx.click);
                         Navigator.of(context)
                             .push(
                               MaterialPageRoute(
-                                builder: (_) => const AssociationScreen(),
+                                builder: (_) => ThreeCluesScreen(
+                                  initialLevel: _storage.threeCluesLevel,
+                                ),
                               ),
                             )
                             .then((_) => _refresh());

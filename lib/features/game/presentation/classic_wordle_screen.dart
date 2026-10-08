@@ -1,10 +1,12 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/data/classic_levels.dart';
+import '../../../core/data/word_dictionary.dart';
 import '../../../core/logic/wordle_evaluator.dart';
+import '../../../core/services/ad_service.dart';
 import '../../../core/services/audio_service.dart';
-import '../../../core/services/dictionary_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../core/services/game_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/animated_flip_tile.dart';
 import '../widgets/booster_bar.dart';
@@ -13,11 +15,11 @@ import '../widgets/shake_widget.dart';
 import '../widgets/win_loss_modal.dart';
 
 class ClassicWordleScreen extends StatefulWidget {
-  final int initialWordLength;
+  final int? initialLevel;
 
   const ClassicWordleScreen({
     super.key,
-    this.initialWordLength = 5,
+    this.initialLevel,
   });
 
   @override
@@ -26,15 +28,19 @@ class ClassicWordleScreen extends StatefulWidget {
 
 class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
   final AudioService _audio = AudioService();
-  final DictionaryService _dict = DictionaryService();
-  final StorageService _storage = StorageService();
+  final WordDictionary _dict = WordDictionary();
+  final GameStorage _storage = GameStorage();
+  final AdService _adService = AdService();
 
-  late int _wordLength;
+  late int _currentLevelNumber;
+  late ClassicLevel _currentLevel;
   late String _targetWord;
+  late int _wordLength;
 
   static const int _maxAttempts = 6;
   int _currentAttempt = 0;
   String _currentGuess = '';
+  int _hintsUsedInLevel = 0;
 
   // Grid state: 6 rows of evaluations
   late List<List<LetterEvaluation>> _gridEvaluations;
@@ -51,16 +57,21 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
   @override
   void initState() {
     super.initState();
-    _wordLength = widget.initialWordLength;
+    _currentLevelNumber = widget.initialLevel ?? _storage.classicLevel;
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _startNewGame();
+    _startLevel(_currentLevelNumber);
   }
 
-  void _startNewGame() {
+  void _startLevel(int levelNum) {
     setState(() {
-      _targetWord = _dict.getRandomSolution(_wordLength);
+      _currentLevelNumber = levelNum.clamp(1, 50);
+      _currentLevel = ClassicLevels.getLevel(_currentLevelNumber);
+      _targetWord = _currentLevel.targetWord;
+      _wordLength = _targetWord.length;
+
       _currentAttempt = 0;
       _currentGuess = '';
+      _hintsUsedInLevel = 0;
       _isGameOver = false;
       _isWinningRow = false;
       _keyboardStates.clear();
@@ -114,7 +125,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
     });
   }
 
-  Future<void> _onEnterTapped() async {
+  Future<void> _onSubmitTapped() async {
     if (_isGameOver) return;
 
     if (_currentGuess.length < _wordLength) {
@@ -127,7 +138,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
       return;
     }
 
-    // Evaluate using strict Two-Pass algorithm
+    // Two-Pass Wordle Validation Engine
     final evaluations = WordleEvaluator.evaluate(
       guess: _currentGuess,
       target: _targetWord,
@@ -151,7 +162,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
     for (final eval in evaluations) {
       final existingState = _keyboardStates[eval.char];
       if (existingState == LetterState.correct) {
-        continue; // Keep Green
+        continue;
       }
       if (eval.state == LetterState.correct ||
           (eval.state == LetterState.misplaced && existingState != LetterState.correct)) {
@@ -191,7 +202,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
         backgroundColor: Colors.redAccent.shade700,
         duration: const Duration(milliseconds: 1000),
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(bottom: 120, left: 60, right: 60),
+        margin: const EdgeInsets.only(bottom: 160, left: 60, right: 60),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -204,9 +215,9 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
     });
 
     await _storage.recordGameResult(won: true);
-    await _storage.addCoins(30);
+    await _storage.addCoins(35);
+    await _storage.advanceClassicLevel();
 
-    // Stagger delay before confetti and modal
     await Future.delayed(Duration(milliseconds: _wordLength * 80 + 300));
     _audio.playSfx(GameSfx.win);
     _confettiController.play();
@@ -238,12 +249,16 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
       builder: (ctx) => WinLossModal(
         isWin: isWin,
         solution: _targetWord,
-        coinsEarned: isWin ? 30 : 5,
+        coinsEarned: isWin ? 35 : 5,
         currentStreak: _storage.currentStreak,
         attemptsUsed: _currentAttempt + 1,
         onNextWord: () {
           Navigator.of(ctx).pop();
-          _startNewGame();
+          if (isWin) {
+            _startLevel(_currentLevelNumber + 1);
+          } else {
+            _startLevel(_currentLevelNumber);
+          }
         },
         onMainMenu: () {
           Navigator.of(ctx).pop();
@@ -253,38 +268,95 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
     );
   }
 
-  // Booster Actions
+  // ==========================================
+  // POSITIONAL HINT & BOOSTER ACTIONS
+  // ==========================================
   Future<void> _useHintBooster() async {
     if (_isGameOver) return;
-    final success = await _storage.deductCoins(50);
-    if (!success) return;
+
+    // Strict limit: cannot exceed word length
+    if (_hintsUsedInLevel >= _wordLength) {
+      _triggerRowError('Max hints reached for this level');
+      return;
+    }
+
+    // Check coins; if low, offer rewarded ad for free hint
+    if (_storage.coins < 50) {
+      final watched = await _adService.showRewardedAd(
+        context: context,
+        placement: 'Free Positional Hint',
+        onRewardGranted: () {},
+      );
+      if (!watched) return;
+    } else {
+      final deducted = await _storage.deductCoins(50);
+      if (!deducted) return;
+    }
 
     _audio.playSfx(GameSfx.booster);
 
-    // Reveal the first missing green letter
+    // Place the exact correct letter into its real position in the active guess row
+    final targetChars = _targetWord.split('');
+    final guessChars = _currentGuess.padRight(_wordLength, ' ').split('');
+
+    int targetSlot = -1;
     for (int i = 0; i < _wordLength; i++) {
-      final targetChar = _targetWord[i];
-      if (_currentGuess.length <= i) {
-        setState(() {
-          _currentGuess += targetChar;
-          _gridEvaluations[_currentAttempt][i] = LetterEvaluation(
-            char: targetChar,
-            state: LetterState.filled,
-          );
-        });
+      if (guessChars[i] != targetChars[i]) {
+        targetSlot = i;
         break;
       }
     }
+
+    if (targetSlot == -1) {
+      targetSlot = 0;
+    }
+
+    // Place target letter into real position
+    guessChars[targetSlot] = targetChars[targetSlot];
+    final updatedGuess = guessChars.join('').trimRight();
+
+    setState(() {
+      _hintsUsedInLevel++;
+      _currentGuess = updatedGuess;
+      for (int i = 0; i < _wordLength; i++) {
+        final char = i < _currentGuess.length ? _currentGuess[i] : '';
+        _gridEvaluations[_currentAttempt][i] = LetterEvaluation(
+          char: char,
+          state: char.isNotEmpty ? LetterState.filled : LetterState.empty,
+        );
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Hint placed letter "${targetChars[targetSlot]}" at slot ${targetSlot + 1}!',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.boosterHint,
+        duration: const Duration(milliseconds: 1400),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 160, left: 40, right: 40),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   Future<void> _useCrosshairBooster() async {
     if (_isGameOver) return;
     final success = await _storage.deductCoins(30);
-    if (!success) return;
+    if (!success) {
+      final watched = await _adService.showRewardedAd(
+        context: context,
+        placement: 'Free Keyboard Crosshair',
+        onRewardGranted: () {},
+      );
+      if (!watched) return;
+    }
 
     _audio.playSfx(GameSfx.booster);
 
-    // Pick 3 letters not in target word and not already eliminated
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     final candidateLetters = allLetters.split('').where((char) {
       return !_targetWord.contains(char) && !_eliminatedKeys.contains(char);
@@ -299,7 +371,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
   void _useSkipBooster() {
     if (_isGameOver) return;
     _audio.playSfx(GameSfx.booster);
-    _startNewGame();
+    _startLevel(_currentLevelNumber + 1);
   }
 
   @override
@@ -320,9 +392,13 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
               Column(
                 children: [
                   _buildHeaderHUD(),
+                  _buildEmojiCluesBar(),
                   Expanded(
                     child: Center(
-                      child: _buildGrid(),
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: _buildGrid(),
+                      ),
                     ),
                   ),
                   BoosterBar(
@@ -331,13 +407,15 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
                     onCrosshairTapped: _useCrosshairBooster,
                     onSkipTapped: _useSkipBooster,
                   ),
+                  _buildDedicatedSubmitRow(),
                   GameKeyboard(
                     keyStates: _keyboardStates,
                     eliminatedKeys: _eliminatedKeys,
                     onKeyTapped: _onKeyTapped,
-                    onEnterTapped: _onEnterTapped,
+                    onEnterTapped: _onSubmitTapped,
                     onDeleteTapped: _onDeleteTapped,
                   ),
+                  const AdBannerContainer(),
                 ],
               ),
 
@@ -376,54 +454,148 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textLight),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          Text(
-            'WORDLE ($_wordLength LETTERS)',
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              color: AppColors.textLight,
-            ),
-          ),
-          Row(
+          Column(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.tileFilled,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.coinGold.withValues(alpha: 0.4)),
+              Text(
+                'LEVEL $_currentLevelNumber / 50',
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: AppColors.textLight,
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.monetization_on, color: AppColors.coinGold, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${_storage.coins}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.coinGold,
-                      ),
-                    ),
-                  ],
+              ),
+              Text(
+                '$_wordLength LETTERS • HINTS: $_hintsUsedInLevel/$_wordLength',
+                style: GoogleFonts.outfit(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.menuWarmAmber,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.tileFilled,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.coinGold.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.monetization_on, color: AppColors.coinGold, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  '${_storage.coins}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.coinGold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+  /// Emoji clues bar matching Lion Studios casual-gaming polish
+  Widget _buildEmojiCluesBar() {
+    return Container(
+      margin: const EdgeInsets.only(top: 4, bottom: 4, left: 16, right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.tileFilled.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.tileFilledBorder.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'CLUES:',
+            style: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textMuted,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ..._currentLevel.emojiClues.map(
+            (emoji) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Prominent, tactile dedicated SUBMIT button alongside QWERTY controls
+  Widget _buildDedicatedSubmitRow() {
+    final canSubmit = _currentGuess.length == _wordLength && !_isGameOver;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: SizedBox(
+        width: double.infinity,
+        height: 42,
+        child: ElevatedButton(
+          onPressed: canSubmit ? _onSubmitTapped : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.tileCorrect,
+            disabledBackgroundColor: AppColors.tileFilled.withValues(alpha: 0.6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: canSubmit ? AppColors.tileCorrectBevel : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+            elevation: canSubmit ? 4 : 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.check_circle_rounded,
+                size: 18,
+                color: canSubmit ? Colors.white : AppColors.textMuted,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'SUBMIT GUESS (${_currentGuess.length}/$_wordLength)',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: canSubmit ? Colors.white : AppColors.textMuted,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGrid() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final gridWidth = (screenWidth * 0.90).clamp(280.0, 420.0);
-    final tileSize = (gridWidth / _wordLength) - 8;
+    final gridWidth = (screenWidth * 0.90).clamp(260.0, 400.0);
+    final tileSize = ((gridWidth - (_wordLength * 6)) / _wordLength).clamp(38.0, 62.0);
 
     return Container(
       width: gridWidth,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: List.generate(_maxAttempts, (rowIdx) {
@@ -431,22 +603,26 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
 
           return ShakeWidget(
             controller: _shakeControllers[rowIdx],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_wordLength, (colIdx) {
-                final evaluation = _gridEvaluations[rowIdx][colIdx];
-                return SizedBox(
-                  width: tileSize,
-                  height: tileSize,
-                  child: AnimatedFlipTile(
-                    letter: evaluation.char,
-                    state: evaluation.state,
-                    columnIndex: colIdx,
-                    isRevealed: _revealedRows[rowIdx],
-                    isWinningBounce: isWinningRow,
-                  ),
-                );
-              }),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(_wordLength, (colIdx) {
+                  final evaluation = _gridEvaluations[rowIdx][colIdx];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                    width: tileSize,
+                    height: tileSize,
+                    child: AnimatedFlipTile(
+                      letter: evaluation.char,
+                      state: evaluation.state,
+                      columnIndex: colIdx,
+                      isRevealed: _revealedRows[rowIdx],
+                      isWinningBounce: isWinningRow,
+                    ),
+                  );
+                }),
+              ),
             ),
           );
         }),

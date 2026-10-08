@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/services/audio_service.dart';
+import 'core/services/game_storage.dart';
 import 'core/services/storage_service.dart';
 import 'core/theme/game_theme.dart';
 import 'features/menu/presentation/screens/main_menu_screen.dart';
@@ -17,7 +18,7 @@ void main() {
       debugPrint('Caught Flutter Framework Error: ${details.exception}');
     };
 
-    // Safe orientation lock
+    // Safe orientation lock for casual game experience
     try {
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
@@ -27,16 +28,17 @@ void main() {
       debugPrint('Orientation lock note: $e');
     }
 
-    // Safe persistence engine init
+    // Initialize unified persistence architecture
     try {
+      await GameStorage().init();
       await StorageService().init();
     } catch (e) {
-      debugPrint('StorageService init note: $e');
+      debugPrint('GameStorage init note: $e');
     }
 
-    // Safe audio engine init
+    // Initialize procedural low-latency audio synthesizer
     try {
-      final soundEnabled = StorageService().isSoundEnabled;
+      final soundEnabled = GameStorage().isSoundEnabled;
       await AudioService().init(soundEnabled: soundEnabled);
     } catch (e) {
       debugPrint('AudioService init note: $e');
