@@ -21,106 +21,106 @@ class ClassicLevel {
 class ClassicLevels {
   static const List<ClassicLevel> levels = [
     // -------------------------------------------------------------
-    // Levels 1–15: 4-Letter Foundation Puzzles
+    // Levels 1–15: 4-Letter Foundation Puzzles (Associative Clues)
     // -------------------------------------------------------------
     ClassicLevel(
       levelNumber: 1,
       targetWord: 'BIRD',
-      emojiClues: ['🐦', '🪶', '🥚', '🌳'],
+      emojiClues: ['🪶', '🪺', '🌳', '🌤️'],
     ),
     ClassicLevel(
       levelNumber: 2,
       targetWord: 'FISH',
-      emojiClues: ['🐟', '🌊', '🎣', '🐠'],
+      emojiClues: ['🌊', '🪝', '🫧', '🪸'],
     ),
     ClassicLevel(
       levelNumber: 3,
       targetWord: 'MOON',
-      emojiClues: ['🌙', '🌌', '⭐', '🚀'],
+      emojiClues: ['⭐', '🌌', '🐺', '🔭'],
     ),
     ClassicLevel(
       levelNumber: 4,
       targetWord: 'FIRE',
-      emojiClues: ['🔥', '🪵', '🏕️', '♨️'],
+      emojiClues: ['🪵', '⛺', '🌡️', '🚒'],
     ),
     ClassicLevel(
       levelNumber: 5,
       targetWord: 'ROSE',
-      emojiClues: ['🌹', '💐', '🌿', '❤️'],
+      emojiClues: ['💐', '🌿', '❤️', '🪴'],
     ),
     ClassicLevel(
       levelNumber: 6,
       targetWord: 'STAR',
-      emojiClues: ['⭐', '✨', '🌃', '🔭'],
+      emojiClues: ['🌌', '✨', '🔭', '🌃'],
     ),
     ClassicLevel(
       levelNumber: 7,
       targetWord: 'LION',
-      emojiClues: ['🦁', '👑', '🐾', '🌾'],
+      emojiClues: ['👑', '🥩', '🐾', '🌍'],
     ),
     ClassicLevel(
       levelNumber: 8,
       targetWord: 'SNOW',
-      emojiClues: ['❄️', '⛄', '🎿', '🏔️'],
+      emojiClues: ['🧣', '🎿', '🧤', '🏔️'],
     ),
     ClassicLevel(
       levelNumber: 9,
       targetWord: 'RAIN',
-      emojiClues: ['🌧️', '💧', '☔', '🌈'],
+      emojiClues: ['☂️', '👢', '🌱', '🌈'],
     ),
     ClassicLevel(
       levelNumber: 10,
       targetWord: 'BOOK',
-      emojiClues: ['📖', '📚', '👓', '✍️'],
+      emojiClues: ['👓', '✍️', '🏫', '🔖'],
     ),
     ClassicLevel(
       levelNumber: 11,
       targetWord: 'SHIP',
-      emojiClues: ['🚢', '⚓', '🌊', '🧭'],
+      emojiClues: ['⚓', '🌊', '🧭', '🏴‍☠️'],
     ),
     ClassicLevel(
       levelNumber: 12,
       targetWord: 'CAKE',
-      emojiClues: ['🎂', '🍰', '🕯️', '🧁'],
+      emojiClues: ['🕯️', '🎉', '🧁', '🎈'],
     ),
     ClassicLevel(
       levelNumber: 13,
       targetWord: 'FROG',
-      emojiClues: ['🐸', '💧', '🪷', '🦗'],
+      emojiClues: ['🪷', '💧', '🪰', '🦘'],
     ),
     ClassicLevel(
       levelNumber: 14,
       targetWord: 'GOLD',
-      emojiClues: ['🪙', '👑', '🏆', '💎'],
+      emojiClues: ['⛏️', '💍', '🏆', '🏦'],
     ),
     ClassicLevel(
       levelNumber: 15,
       targetWord: 'WIND',
-      emojiClues: ['💨', '🍃', '🪁', '🌬️'],
+      emojiClues: ['🪁', '🍃', '⛵', '🌬️'],
     ),
 
     // -------------------------------------------------------------
-    // Levels 16–40: 5-Letter Core Wordle Puzzles
+    // Levels 16–40: 5-Letter Core Wordle Puzzles (Associative Clues)
     // -------------------------------------------------------------
     ClassicLevel(
       levelNumber: 16,
       targetWord: 'APPLE',
-      emojiClues: ['🍎', '🍏', '🥧', '🌳'],
+      emojiClues: ['🥧', '🩺', '🌳', '🍂'],
     ),
     ClassicLevel(
       levelNumber: 17,
       targetWord: 'BREAD',
-      emojiClues: ['🍞', '🥖', '🌾', '🥪'],
+      emojiClues: ['🌾', '🥪', '🧈', '👨‍🍳'],
     ),
     ClassicLevel(
       levelNumber: 18,
       targetWord: 'CHESS',
-      emojiClues: ['♟️', '👑', '🏁', '🧠'],
+      emojiClues: ['🧠', '⏱️', '⬛', '🏆'],
     ),
     ClassicLevel(
       levelNumber: 19,
       targetWord: 'CROWN',
-      emojiClues: ['👑', '🤴', '👸', '💎'],
+      emojiClues: ['🤴', '💎', '🏰', '👸'],
     ),
     ClassicLevel(
       levelNumber: 20,
@@ -130,62 +130,62 @@ class ClassicLevels {
     ClassicLevel(
       levelNumber: 21,
       targetWord: 'EAGLE',
-      emojiClues: ['🦅', '🏔️', '🪶', '🇺🇸'],
+      emojiClues: ['🏔️', '🪶', '🇺🇸', '🔭'],
     ),
     ClassicLevel(
       levelNumber: 22,
       targetWord: 'FLAME',
-      emojiClues: ['🔥', '🕯️', '🪵', '✨'],
+      emojiClues: ['🪵', '🕯️', '🚒', '✨'],
     ),
     ClassicLevel(
       levelNumber: 23,
       targetWord: 'GHOST',
-      emojiClues: ['👻', '🎃', '🏚️', '🕯️'],
+      emojiClues: ['🏚️', '🎃', '🕯️', '😱'],
     ),
     ClassicLevel(
       levelNumber: 24,
       targetWord: 'HEART',
-      emojiClues: ['❤️', '🩺', '💓', '💘'],
+      emojiClues: ['🩺', '💓', '💘', '🏥'],
     ),
     ClassicLevel(
       levelNumber: 25,
       targetWord: 'HORSE',
-      emojiClues: ['🐎', '🤠', '🌾', '🚜'],
+      emojiClues: ['🤠', '🌾', '🚜', '🏇'],
     ),
     ClassicLevel(
       levelNumber: 26,
       targetWord: 'JUICE',
-      emojiClues: ['🧃', '🍊', '🍹', '🥤'],
+      emojiClues: ['🍊', '🍹', '🥤', '🧊'],
     ),
     ClassicLevel(
       levelNumber: 27,
       targetWord: 'KNIFE',
-      emojiClues: ['🔪', '🥩', '🍽️', '👨‍🍳'],
+      emojiClues: ['🥩', '🍽️', '👨‍🍳', '🧅'],
     ),
     ClassicLevel(
       levelNumber: 28,
       targetWord: 'LEMON',
-      emojiClues: ['🍋', '🍹', '🟡', '🥧'],
+      emojiClues: ['🍹', '🟡', '🥧', '🧂'],
     ),
     ClassicLevel(
       levelNumber: 29,
       targetWord: 'MAGIC',
-      emojiClues: ['✨', '🧙‍♂️', '🎩', '🐰'],
+      emojiClues: ['✨', '🎩', '🐰', '🔮'],
     ),
     ClassicLevel(
       levelNumber: 30,
       targetWord: 'MUSIC',
-      emojiClues: ['🎵', '🎶', '🎸', '🎧'],
+      emojiClues: ['🎸', '🎧', '📻', '🎙️'],
     ),
     ClassicLevel(
       levelNumber: 31,
       targetWord: 'NIGHT',
-      emojiClues: ['🌙', '⭐', '🦉', '🛌'],
+      emojiClues: ['⭐', '🦉', '🛌', '🌌'],
     ),
     ClassicLevel(
       levelNumber: 32,
       targetWord: 'OCEAN',
-      emojiClues: ['🌊', '🐋', '🏖️', '⛵'],
+      emojiClues: ['🏖️', '⛵', '🐋', '🪸'],
     ),
     ClassicLevel(
       levelNumber: 33,
@@ -195,22 +195,22 @@ class ClassicLevels {
     ClassicLevel(
       levelNumber: 34,
       targetWord: 'PIZZA',
-      emojiClues: ['🍕', '🧀', '🍅', '🇮🇹'],
+      emojiClues: ['🧀', '🍅', '🇮🇹', '📦'],
     ),
     ClassicLevel(
       levelNumber: 35,
       targetWord: 'QUEEN',
-      emojiClues: ['👸', '👑', '🏰', '💎'],
+      emojiClues: ['🏰', '💎', '♟️', '🇬🇧'],
     ),
     ClassicLevel(
       levelNumber: 36,
       targetWord: 'ROBOT',
-      emojiClues: ['🤖', '⚙️', '🔋', '💻'],
+      emojiClues: ['⚙️', '🔋', '💻', '🦾'],
     ),
     ClassicLevel(
       levelNumber: 37,
       targetWord: 'SHARK',
-      emojiClues: ['🦈', '🌊', '🦷', '🏊'],
+      emojiClues: ['🦷', '🏊', '🤿', '🌊'],
     ),
     ClassicLevel(
       levelNumber: 38,
@@ -220,41 +220,41 @@ class ClassicLevels {
     ClassicLevel(
       levelNumber: 39,
       targetWord: 'TIGER',
-      emojiClues: ['🐅', '🌿', '🐾', '🥩'],
+      emojiClues: ['🌿', '🐾', '🥩', '🟠'],
     ),
     ClassicLevel(
       levelNumber: 40,
       targetWord: 'WATER',
-      emojiClues: ['💧', '🌊', '🚰', '🧊'],
+      emojiClues: ['🚰', '🧊', '🏜️', '🚿'],
     ),
 
     // -------------------------------------------------------------
-    // Levels 41–50: 6-Letter Challenge Words
+    // Levels 41–50: 6-Letter Challenge Words (Associative Clues)
     // -------------------------------------------------------------
     ClassicLevel(
       levelNumber: 41,
       targetWord: 'CASTLE',
-      emojiClues: ['🏰', '🛡️', '👑', '⚔️'],
+      emojiClues: ['🛡️', '👑', '⚔️', '🐎'],
     ),
     ClassicLevel(
       levelNumber: 42,
       targetWord: 'DRAGON',
-      emojiClues: ['🐉', '🔥', '🏰', '🗡️'],
+      emojiClues: ['🔥', '🏰', '🗡️', '🦇'],
     ),
     ClassicLevel(
       levelNumber: 43,
       targetWord: 'FOREST',
-      emojiClues: ['🌲', '🍄', '🦌', '🏕️'],
+      emojiClues: ['🍄', '🏕️', '🦌', '🪵'],
     ),
     ClassicLevel(
       levelNumber: 44,
       targetWord: 'GALAXY',
-      emojiClues: ['🌌', '🪐', '✨', '🚀'],
+      emojiClues: ['🪐', '✨', '🚀', '🔭'],
     ),
     ClassicLevel(
       levelNumber: 45,
       targetWord: 'ISLAND',
-      emojiClues: ['🏝️', '🌴', '🥥', '🌊'],
+      emojiClues: ['🌴', '🥥', '🌊', '⛵'],
     ),
     ClassicLevel(
       levelNumber: 46,
@@ -264,22 +264,22 @@ class ClassicLevels {
     ClassicLevel(
       levelNumber: 47,
       targetWord: 'MONKEY',
-      emojiClues: ['🐒', '🍌', '🌴', '🐵'],
+      emojiClues: ['🍌', '🌴', '🧗', '🥜'],
     ),
     ClassicLevel(
       levelNumber: 48,
       targetWord: 'ORANGE',
-      emojiClues: ['🍊', '🍹', '🎨', '🌳'],
+      emojiClues: ['🍹', '🎨', '🌳', '🌞'],
     ),
     ClassicLevel(
       levelNumber: 49,
       targetWord: 'PLANET',
-      emojiClues: ['🪐', '🌍', '🔭', '🌌'],
+      emojiClues: ['🔭', '🌌', '🚀', '☀️'],
     ),
     ClassicLevel(
       levelNumber: 50,
       targetWord: 'WIZARD',
-      emojiClues: ['🧙‍♂️', '🪄', '🔮', '✨'],
+      emojiClues: ['🪄', '🔮', '✨', '📜'],
     ),
   ];
 

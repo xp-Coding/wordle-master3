@@ -222,17 +222,13 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
     final unfound = _levelData.targetWords.where((w) => !_foundWords.contains(w)).toList();
     if (unfound.isEmpty) return;
 
-    if (_storage.coins < 30) {
-      final watched = await _adService.showRewardedAd(
-        context: context,
-        placement: 'Free Word Connect Hint',
-        onRewardGranted: () {},
-      );
-      if (!watched) return;
-    } else {
-      final deducted = await _storage.deductCoins(30);
-      if (!deducted) return;
-    }
+    // Always require ad viewing before activating skill
+    final watched = await _adService.showRewardedAd(
+      context: context,
+      placement: 'Word Connect Reveal Word',
+      onRewardGranted: () {},
+    );
+    if (!watched) return;
 
     _audio.playSfx(GameSfx.booster);
     final wordToReveal = unfound.first;
@@ -265,23 +261,22 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
               Column(
                 children: [
                   _buildHeader(),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
+                  // Crossword slots scrollable upper section
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         children: [
                           _buildTargetWordSlots(),
-                          const SizedBox(height: 16),
-                          _buildActiveWordPreview(),
-                          const SizedBox(height: 16),
-                          _buildRadialWheel(),
                           const SizedBox(height: 12),
-                          _buildHintButton(),
+                          _buildActiveWordPreview(),
                         ],
                       ),
                     ),
                   ),
+                  // Dedicated bottom controller with radial circle & vibrant reveal button
+                  _buildBottomControllerPanel(),
                   const AdBannerContainer(),
                 ],
               ),
@@ -300,6 +295,20 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
     );
   }
 
+  Widget _buildBottomControllerPanel() {
+    return Container(
+      padding: const EdgeInsets.only(top: 6, bottom: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildRadialWheel(),
+          const SizedBox(height: 8),
+          _buildHintButton(),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -311,7 +320,7 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           Text(
-            'WORD CONNECT • LVL $_currentLevel / 50',
+            'WORD CONNECT • LVL $_currentLevel',
             style: GoogleFonts.outfit(
               fontSize: 17,
               fontWeight: FontWeight.w900,
@@ -453,17 +462,47 @@ class _WordConnectScreenState extends State<WordConnectScreen> {
   }
 
   Widget _buildHintButton() {
-    return ElevatedButton.icon(
-      onPressed: _revealRandomWordHint,
-      icon: const Icon(Icons.lightbulb_rounded, size: 16),
-      label: Text(
-        _storage.coins >= 30 ? 'REVEAL WORD (-30 COINS)' : 'REVEAL WORD (WATCH AD)',
-        style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.boosterHint,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: _revealRandomWordHint,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'REVEAL WORD (AD)',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

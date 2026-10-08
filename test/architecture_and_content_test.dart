@@ -70,7 +70,9 @@ void main() {
 
       final lvl48 = ClassicLevels.getLevel(48);
       expect(lvl48.targetWord, equals('ORANGE'));
-      expect(lvl48.emojiClues, contains('🍊'));
+      expect(lvl48.emojiClues, contains('🍹'));
+      // Verify literal target emoji is NOT in clues
+      expect(lvl48.emojiClues, isNot(contains('🍊')));
     });
   });
 
@@ -169,6 +171,21 @@ void main() {
       // Cannot double claim
       final doubleClaim = await storage.claimMilestoneChest(3, 150);
       expect(doubleClaim, isFalse);
+    });
+
+    test('Daily status tracks won and passed correctly', () async {
+      final storage = GameStorage();
+      expect(storage.getDailyStatus('2026-10-05'), isNull);
+
+      await storage.recordDailyWin('2026-10-05');
+      expect(storage.isDailyWon('2026-10-05'), isTrue);
+      expect(storage.isDailyPassed('2026-10-05'), isFalse);
+      expect(storage.isDailyCompleted('2026-10-05'), isTrue);
+
+      await storage.recordDailyPass('2026-10-06');
+      expect(storage.isDailyWon('2026-10-06'), isFalse);
+      expect(storage.isDailyPassed('2026-10-06'), isTrue);
+      expect(storage.isDailyCompleted('2026-10-06'), isTrue);
     });
   });
 }

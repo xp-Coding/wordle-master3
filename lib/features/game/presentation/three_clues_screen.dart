@@ -272,17 +272,13 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
     }
     if (emptySlot == -1) return;
 
-    if (_storage.coins < 30) {
-      final watched = await _adService.showRewardedAd(
-        context: context,
-        placement: 'Free Hint in 3 Clues',
-        onRewardGranted: () {},
-      );
-      if (!watched) return;
-    } else {
-      final deducted = await _storage.deductCoins(30);
-      if (!deducted) return;
-    }
+    // Always require ad viewing before activating skill
+    final watched = await _adService.showRewardedAd(
+      context: context,
+      placement: '3 Clues Free Hint',
+      onRewardGranted: () {},
+    );
+    if (!watched) return;
 
     _audio.playSfx(GameSfx.booster);
     final targetChar = _puzzle.solution[emptySlot];
@@ -308,9 +304,19 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
     }
   }
 
-  void _usePass() {
+  Future<void> _usePass() async {
     if (_isGameOver) return;
+
+    // Always require ad viewing before activating skill
+    final watched = await _adService.showRewardedAd(
+      context: context,
+      placement: '3 Clues Skip Pass',
+      onRewardGranted: () {},
+    );
+    if (!watched) return;
+
     _audio.playSfx(GameSfx.booster);
+    await _storage.advanceThreeCluesLevel();
     _loadPuzzle(_currentLevelNumber + 1);
   }
 
@@ -372,7 +378,7 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
           Column(
             children: [
               Text(
-                'LEVEL $_currentLevelNumber / 50',
+                'LEVEL $_currentLevelNumber',
                 style: GoogleFonts.outfit(
                   fontSize: 17,
                   fontWeight: FontWeight.w900,
@@ -491,6 +497,26 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
           final letter = _selectedSlots[i];
           final isFilled = letter != null;
 
+          Color slotBgColor;
+          Color slotBorderColor;
+
+          if (!isFilled) {
+            slotBgColor = AppColors.tileEmpty;
+            slotBorderColor = AppColors.tileEmptyBorder;
+          } else if (letter == _puzzle.solution[i]) {
+            // Correct letter placed in exact position (Green)
+            slotBgColor = AppColors.tileCorrect;
+            slotBorderColor = AppColors.tileCorrectBevel;
+          } else if (_puzzle.solution.contains(letter)) {
+            // Correct letter with incorrect position (Yellow)
+            slotBgColor = AppColors.tileMisplaced;
+            slotBorderColor = const Color(0xFFC9B458);
+          } else {
+            // Letter not included in target word (Gray)
+            slotBgColor = AppColors.tileAbsent;
+            slotBorderColor = const Color(0xFF787C7E);
+          }
+
           return GestureDetector(
             onTap: () => _onSlotTapped(i),
             child: Container(
@@ -498,16 +524,16 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
               width: 44,
               height: 48,
               decoration: BoxDecoration(
-                color: isFilled ? AppColors.tileCorrect : AppColors.tileEmpty,
+                color: slotBgColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isFilled ? AppColors.tileCorrectBevel : AppColors.tileEmptyBorder,
+                  color: slotBorderColor,
                   width: 2,
                 ),
                 boxShadow: [
                   if (isFilled)
-                    const BoxShadow(
-                      color: AppColors.tileCorrectGlow,
+                    BoxShadow(
+                      color: slotBgColor.withValues(alpha: 0.5),
                       blurRadius: 8,
                     ),
                 ],
@@ -528,7 +554,7 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
     );
   }
 
-  /// Action bar with HINT and PASS
+  /// Action bar with HINT (AD) and PASS (AD)
   Widget _buildActionBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -537,23 +563,23 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
         children: [
           ElevatedButton.icon(
             onPressed: _useHint,
-            icon: const Icon(Icons.search_rounded, size: 16),
+            icon: const Icon(Icons.lightbulb_rounded, size: 16),
             label: Text(
-              _storage.coins >= 30 ? 'HINT (-30)' : 'HINT (AD)',
+              'HINT (AD)',
               style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.boosterHint,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
           const SizedBox(width: 16),
           OutlinedButton.icon(
             onPressed: _usePass,
-            icon: const Icon(Icons.skip_next_rounded, size: 16, color: Colors.white70),
+            icon: const Icon(Icons.skip_next_rounded, size: 16, color: Colors.white),
             label: Text(
-              'PASS',
+              'PASS (AD)',
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -561,8 +587,8 @@ class _ThreeCluesScreenState extends State<ThreeCluesScreen> {
               ),
             ),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              side: const BorderSide(color: AppColors.tileFilledBorder),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              side: const BorderSide(color: AppColors.streakOrange, width: 1.5),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),

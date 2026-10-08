@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/services/ad_service.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/game_storage.dart';
 import 'core/services/storage_service.dart';
@@ -54,12 +55,52 @@ void main() {
   });
 }
 
-class WordleMasterApp extends StatelessWidget {
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+class WordleMasterApp extends StatefulWidget {
   const WordleMasterApp({super.key});
+
+  @override
+  State<WordleMasterApp> createState() => _WordleMasterAppState();
+}
+
+class _WordleMasterAppState extends State<WordleMasterApp> with WidgetsBindingObserver {
+  bool _wasBackgrounded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _wasBackgrounded = true;
+    } else if (state == AppLifecycleState.resumed && _wasBackgrounded) {
+      _wasBackgrounded = false;
+      final navCtx = rootNavigatorKey.currentContext;
+      if (navCtx != null) {
+        Future.delayed(const Duration(milliseconds: 400), () {
+          final ctx = rootNavigatorKey.currentContext;
+          if (ctx != null && mounted) {
+            AdService().showAppOpenAd(ctx);
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: rootNavigatorKey,
       title: 'Wordle Master',
       debugShowCheckedModeBanner: false,
       theme: GameTheme.themeData,
@@ -92,3 +133,4 @@ class WordleMasterApp extends StatelessWidget {
     );
   }
 }
+

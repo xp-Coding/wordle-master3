@@ -7,6 +7,7 @@ import '../../../game/presentation/classic_wordle_screen.dart';
 import '../../../game/presentation/daily_puzzle_screen.dart';
 import '../../../game/presentation/three_clues_screen.dart';
 import '../../../game/presentation/word_connect_screen.dart';
+import '../widgets/rules_modal.dart';
 import '../../widgets/lucky_spin_dialog.dart';
 import '../widgets/piggy_bank_modal.dart';
 import '../widgets/settings_modal.dart';
@@ -31,6 +32,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     showDialog(
       context: context,
       builder: (ctx) => SettingsModal(onChanged: _refresh),
+    );
+  }
+
+  void _openRulesModal() {
+    _audio.playSfx(GameSfx.click);
+    showDialog(
+      context: context,
+      builder: (ctx) => const RulesModal(),
     );
   }
 
@@ -98,9 +107,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   children: [
                     _buildModeCard(
                       title: 'CLASSIC WORDLE',
-                      subtitle: '50 progressive levels • Emoji hints • Two-Pass logic',
+                      subtitle: 'Emoji clues • Two-Pass logic • Positional hints',
                       icon: Icons.grid_view_rounded,
-                      badgeText: 'LEVEL ${_storage.classicLevel} / 50',
+                      badgeText: 'LEVEL ${_storage.classicLevel}',
                       gradientColors: const [Color(0xFF538D4E), Color(0xFF6AAA64)],
                       onTap: () {
                         _audio.playSfx(GameSfx.click);
@@ -118,7 +127,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     const SizedBox(height: 16),
                     _buildModeCard(
                       title: 'DAILY PUZZLE',
-                      subtitle: 'October 2026 calendar grid • Milestone chests',
+                      subtitle: 'October 2026 calendar • Grand prize chests',
                       icon: Icons.calendar_month_rounded,
                       badgeText: _storage.isDailyCompletedToday ? 'DONE TODAY' : 'NEW TODAY',
                       badgeColor: _storage.isDailyCompletedToday
@@ -139,9 +148,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     const SizedBox(height: 16),
                     _buildModeCard(
                       title: 'WORD CONNECT',
-                      subtitle: '50 levels • Radial anagram wheel • Swipe gestures',
+                      subtitle: 'Radial anagram wheel • Swipe gestures',
                       icon: Icons.gesture_rounded,
-                      badgeText: 'LEVEL ${_storage.wordConnectLevel} / 50',
+                      badgeText: 'LEVEL ${_storage.wordConnectLevel}',
                       gradientColors: const [Color(0xFF8E24AA), Color(0xFFAB47BC)],
                       onTap: () {
                         _audio.playSfx(GameSfx.click);
@@ -159,9 +168,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     const SizedBox(height: 16),
                     _buildModeCard(
                       title: '3 CLUES • 1 WORD',
-                      subtitle: '50 deduction puzzles • 3 hearts • Shuffled letters',
+                      subtitle: 'Deduction puzzles • 3 lives • Wordle coloring',
                       icon: Icons.psychology_rounded,
-                      badgeText: 'LEVEL ${_storage.threeCluesLevel} / 50',
+                      badgeText: 'LEVEL ${_storage.threeCluesLevel}',
                       gradientColors: const [Color(0xFF0097A7), Color(0xFF00ACC1)],
                       onTap: () {
                         _audio.playSfx(GameSfx.click);
@@ -290,7 +299,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+
+              // Rules / How to Play button
+              IconButton(
+                icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 24),
+                tooltip: 'How to Play & Rules',
+                onPressed: _openRulesModal,
+              ),
 
               // Settings Gear Button
               IconButton(
@@ -307,49 +323,134 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   Widget _buildLogoBanner() {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: ['W', 'O', 'R', 'D', 'L', 'E'].map((letter) {
-            final isGreen = letter == 'W' || letter == 'D';
-            final isYellow = letter == 'O' || letter == 'L';
-
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: 38,
-              height: 42,
-              decoration: BoxDecoration(
-                color: isGreen
-                    ? AppColors.tileCorrect
-                    : (isYellow ? AppColors.tileMisplaced : AppColors.tileAbsent),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+        // Stylish WB 3D Monogram Crest
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withValues(alpha: 0.35),
+                Colors.black.withValues(alpha: 0.15),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                letter,
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 'W' Tile in Emerald Gradient
+              Container(
+                width: 48,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF538D4E), Color(0xFF6AAA64)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF538D4E).withValues(alpha: 0.6),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'W',
+                  style: GoogleFonts.outfit(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    shadows: [
+                      const Shadow(
+                        color: Colors.black45,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            );
-          }).toList(),
+              const SizedBox(width: 8),
+              // 'B' Tile in Amber Gold Gradient
+              Container(
+                width: 48,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.6),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'B',
+                  style: GoogleFonts.outfit(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    shadows: [
+                      const Shadow(
+                        color: Colors.black45,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
+        // Title Typography: WORDLE MASTER
         Text(
-          'CASUAL PUZZLE PLATFORM',
+          'WORDLE MASTER',
           style: GoogleFonts.outfit(
-            fontSize: 12,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 3.5,
+            color: Colors.white,
+            shadows: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          'OFFICIAL PUZZLE SUITE',
+          style: GoogleFonts.outfit(
+            fontSize: 10.5,
             fontWeight: FontWeight.w800,
-            letterSpacing: 3.0,
-            color: Colors.white.withValues(alpha: 0.9),
+            letterSpacing: 2.5,
+            color: Colors.white.withValues(alpha: 0.85),
           ),
         ),
       ],

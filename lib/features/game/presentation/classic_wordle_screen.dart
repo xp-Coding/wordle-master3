@@ -280,18 +280,13 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
       return;
     }
 
-    // Check coins; if low, offer rewarded ad for free hint
-    if (_storage.coins < 50) {
-      final watched = await _adService.showRewardedAd(
-        context: context,
-        placement: 'Free Positional Hint',
-        onRewardGranted: () {},
-      );
-      if (!watched) return;
-    } else {
-      final deducted = await _storage.deductCoins(50);
-      if (!deducted) return;
-    }
+    // Always require ad viewing before activating skill
+    final watched = await _adService.showRewardedAd(
+      context: context,
+      placement: 'Classic Mode Positional Hint',
+      onRewardGranted: () {},
+    );
+    if (!watched) return;
 
     _audio.playSfx(GameSfx.booster);
 
@@ -327,33 +322,34 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
       }
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Hint placed letter "${targetChars[targetSlot]}" at slot ${targetSlot + 1}!',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Hint placed letter "${targetChars[targetSlot]}" at slot ${targetSlot + 1}!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: AppColors.boosterHint,
+          duration: const Duration(milliseconds: 1400),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 160, left: 40, right: 40),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        backgroundColor: AppColors.boosterHint,
-        duration: const Duration(milliseconds: 1400),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(bottom: 160, left: 40, right: 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+      );
+    }
   }
 
   Future<void> _useCrosshairBooster() async {
     if (_isGameOver) return;
-    final success = await _storage.deductCoins(30);
-    if (!success) {
-      final watched = await _adService.showRewardedAd(
-        context: context,
-        placement: 'Free Keyboard Crosshair',
-        onRewardGranted: () {},
-      );
-      if (!watched) return;
-    }
+
+    // Always require ad viewing before activating skill
+    final watched = await _adService.showRewardedAd(
+      context: context,
+      placement: 'Classic Mode Crosshair',
+      onRewardGranted: () {},
+    );
+    if (!watched) return;
 
     _audio.playSfx(GameSfx.booster);
 
@@ -368,9 +364,19 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
     });
   }
 
-  void _useSkipBooster() {
+  Future<void> _useSkipBooster() async {
     if (_isGameOver) return;
+
+    // Always require ad viewing before activating skill
+    final watched = await _adService.showRewardedAd(
+      context: context,
+      placement: 'Classic Mode Pass',
+      onRewardGranted: () {},
+    );
+    if (!watched) return;
+
     _audio.playSfx(GameSfx.booster);
+    await _storage.advanceClassicLevel();
     _startLevel(_currentLevelNumber + 1);
   }
 
@@ -457,7 +463,7 @@ class _ClassicWordleScreenState extends State<ClassicWordleScreen> {
           Column(
             children: [
               Text(
-                'LEVEL $_currentLevelNumber / 50',
+                'LEVEL $_currentLevelNumber',
                 style: GoogleFonts.outfit(
                   fontSize: 17,
                   fontWeight: FontWeight.w900,

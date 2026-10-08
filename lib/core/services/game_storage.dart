@@ -126,8 +126,19 @@ class GameStorage {
     return '${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}';
   }
 
+  /// Returns 'won', 'passed', or null
+  String? getDailyStatus(String dateString) {
+    final status = _prefs.getString('daily_status_$dateString');
+    if (status != null) return status;
+    if (_prefs.getBool('daily_$dateString') == true) return 'won';
+    return null;
+  }
+
+  bool isDailyWon(String dateString) => getDailyStatus(dateString) == 'won';
+  bool isDailyPassed(String dateString) => getDailyStatus(dateString) == 'passed';
+
   bool isDailyCompleted(String dateString) {
-    return _prefs.getBool('daily_$dateString') ?? false;
+    return getDailyStatus(dateString) != null;
   }
 
   bool get isDailyCompletedToday {
@@ -142,6 +153,7 @@ class GameStorage {
 
   Future<void> recordDailyWin(String dateString) async {
     await _prefs.setBool('daily_$dateString', true);
+    await _prefs.setString('daily_status_$dateString', 'won');
 
     // Update daily streak
     final yesterday = getYesterdayUtcDateString();
@@ -161,6 +173,11 @@ class GameStorage {
     final currentWins = monthlyDailyWins + 1;
     await _prefs.setInt(monthKey, currentWins);
     await _prefs.setInt('monthly_daily_wins', currentWins);
+  }
+
+  Future<void> recordDailyPass(String dateString) async {
+    await _prefs.setBool('daily_$dateString', true);
+    await _prefs.setString('daily_status_$dateString', 'passed');
   }
 
   int get dailyStreak => _prefs.getInt('daily_streak') ?? 0;

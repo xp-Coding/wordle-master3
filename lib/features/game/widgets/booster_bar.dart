@@ -24,28 +24,22 @@ class BoosterBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildBoosterButton(
-            icon: Icons.search_rounded,
+            icon: Icons.lightbulb_rounded,
             title: 'HINT',
-            cost: 50,
             accentColor: AppColors.boosterHint,
             onTap: onHintTapped,
-            canAfford: userCoins >= 50,
           ),
           _buildBoosterButton(
             icon: Icons.gps_fixed_rounded,
             title: 'CROSSHAIR',
-            cost: 30,
             accentColor: AppColors.boosterDart,
             onTap: onCrosshairTapped,
-            canAfford: userCoins >= 30,
           ),
           _buildBoosterButton(
             icon: Icons.skip_next_rounded,
-            title: 'SKIP PASS',
-            cost: 0,
-            accentColor: AppColors.boosterSkip,
+            title: 'PASS',
+            accentColor: AppColors.streakOrange,
             onTap: onSkipTapped,
-            canAfford: true,
           ),
         ],
       ),
@@ -55,95 +49,85 @@ class BoosterBar extends StatelessWidget {
   Widget _buildBoosterButton({
     required IconData icon,
     required String title,
-    required int cost,
     required Color accentColor,
     required VoidCallback onTap,
-    required bool canAfford,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: canAfford ? onTap : null,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        child: Opacity(
-          opacity: canAfford ? 1.0 : 0.45,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.gameHeaderBg,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: accentColor.withValues(alpha: 0.5),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.gameHeaderBg,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.6),
+              width: 1.5,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 16,
-                    color: accentColor,
-                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.outfit(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textLight,
-                      ),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: accentColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textLight,
                     ),
-                    Row(
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.tileFilled,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppColors.coinGold.withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (cost > 0) ...[
-                          const Icon(
-                            Icons.monetization_on,
-                            size: 11,
+                        const Icon(Icons.play_arrow_rounded, size: 10, color: AppColors.coinGold),
+                        Text(
+                          'AD',
+                          style: GoogleFonts.outfit(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
                             color: AppColors.coinGold,
                           ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '$cost',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.coinGold,
-                            ),
-                          ),
-                        ] else
-                          Text(
-                            'FREE',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.greenAccent,
-                            ),
-                          ),
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
